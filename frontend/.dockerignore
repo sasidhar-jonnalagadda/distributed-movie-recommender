@@ -1,0 +1,10 @@
+node_modules/
+.next/
+out/
+.env*
+.git
+.gitignore
+*.md
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
