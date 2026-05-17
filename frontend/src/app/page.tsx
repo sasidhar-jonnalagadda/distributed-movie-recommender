@@ -17,7 +17,7 @@ export default function HomePage() {
 
     const fetchHomeData = async () => {
       let attempts = 0;
-      const maxAttempts = 15; // 75 seconds of patient retrying
+      const maxAttempts = 60; // 75 seconds of patient retrying
 
       while (attempts < maxAttempts && isMounted) {
         try {
