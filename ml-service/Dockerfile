@@ -21,6 +21,12 @@ ENV PORT=8000
 
 EXPOSE 8000
 
+RUN apt-get update && apt-get install -y wget && \
+    mkdir -p /app/artifacts && \
+    wget -O /app/artifacts/movie_dict.pkl "https://github.com/sasidhar-jonnalagadda/distributed-movie-recommender/releases/download/v1.0.0/movie_dict.pkl" && \
+    wget -O /app/artifacts/similarity.pkl "https://github.com/sasidhar-jonnalagadda/distributed-movie-recommender/releases/download/v1.0.0/similarity.pkl" && \
+    apt-get remove -y wget && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+
 RUN adduser --disabled-password --gecos "" appuser && chown -R appuser /app
 USER appuser
 
