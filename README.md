@@ -108,6 +108,14 @@ Once all containers have started and passed their internal health checks, the se
 * **API Gateway Health:** [http://localhost:4000/api/health](http://localhost:4000/api/health)
 * **ML Service Docs:** [http://localhost:8000/docs](http://localhost:8000/docs)
 
+**Demo Credentials:**
+| Role | Email | Password |
+| :--- | :--- | :--- |
+| **Standard User** | `testuser@gmail.com` | `password` |
+
+> [!NOTE]
+> These credentials are created during the docker compose initialization via the seed script. If you cannot log in, ensure you have run the database migration/seed command.
+
 ---
 
 ## 🤝 Contributing
