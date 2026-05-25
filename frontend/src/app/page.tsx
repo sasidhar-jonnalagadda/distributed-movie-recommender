@@ -17,8 +17,8 @@ export default async function HomePage() {
 
   try {
     const res = await fetch(`${API_URL}/api/movies?limit=40`, {
-      next: { revalidate: 3600 }
-    });
+  cache: 'no-store'
+});
 
     if (res.ok) {
       const json = await res.json();
