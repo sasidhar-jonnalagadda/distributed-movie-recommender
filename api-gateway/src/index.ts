@@ -27,12 +27,17 @@ let server: Server;
 
 // --- Security and Pre-processing ---
 app.use(helmet());
+
+// Safely strip any accidental trailing slash from the environment variable
+const liveFrontendURL = config.FRONTEND_URL?.replace(/\/$/, "");
+
 app.use(
   cors({
-    origin: config.FRONTEND_URL,
+    origin: [liveFrontendURL, "http://localhost:3000"], // Allow both live and local dev
     credentials: true,
   })
 );
+
 app.use(compression()); // Optimize response size
 app.use(express.json());
 app.use(cookieParser());
@@ -62,7 +67,6 @@ app.get("/api/health", asyncHandler(async (_req, res) => {
   let mlStatus = "connected";
   try {
     const mlHealth = await mlClient.getHealth();
-    // Assuming mlHealth structure has a 'status' or just checking if it resolves
     if (!mlHealth || mlHealth.status !== "ok") {
       mlStatus = "degraded";
     }
@@ -89,14 +93,31 @@ app.use(errorHandler);
 
 /**
  * Starts the application with pre-flight infrastructure checks.
+ * Includes retry logic to handle serverless database cold starts.
  */
 async function bootstrap() {
   try {
     logger.info("🔍 Performing pre-flight infrastructure checks...");
     
-    // 1. Verify Database Connectivity
-    await db.raw("SELECT 1");
-    logger.info("✅ Database connectivity verified.");
+    // 1. Verify Database Connectivity (With Retry Loop)
+    let retries = 6; // Try up to 6 times (30 seconds total)
+    
+    while (retries > 0) {
+      try {
+        await db.raw("SELECT 1");
+        logger.info("✅ Database connectivity verified.");
+        break; // If successful, break out of the loop
+      } catch (dbError) {
+        retries -= 1;
+        logger.warn(`⏳ Database waking up... Retrying connection. (${retries} attempts left)`);
+        
+        if (retries === 0) {
+          throw new Error("Database failed to wake up after multiple attempts.", { cause: dbError });
+        }
+        
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+      }
+    } // <--- THIS WAS THE MISSING BRACE!
 
     // 2. Start Listening
     server = app.listen(config.PORT, () => {
