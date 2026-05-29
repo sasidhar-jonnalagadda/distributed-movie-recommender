@@ -49,14 +49,13 @@ export default function HomePage() {
     fetchHomeData();
   }, []);
 
-  // The "Cold Start" Loading Screen
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4 text-white">
-        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-6"></div>
+      <div className="flex flex-col items-center justify-center min-h-screen pt-24 pb-12 text-center px-4 text-white">
+        <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-6"></div>
         <h2 className="text-2xl font-semibold mb-2">Waking up the AI Engine...</h2>
         <p className="text-gray-400 max-w-md">
-          Since we are running on free-tier cloud architecture, the database and backend services take about 50 seconds to boot up on the first visit. Hang tight!
+          Since we are running on free-tier cloud architecture, the database and backend services take about 50 seconds to boot up on the first visit. Hang tight, no need to refresh!
         </p>
       </div>
     );
