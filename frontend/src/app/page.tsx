@@ -13,18 +13,24 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    let isMounted = true; // Prevents state updates if the user clicks away
+    let isMounted = true;
 
     const fetchHomeData = async () => {
       let attempts = 0;
-      const maxAttempts = 15; // Give it up to 75 seconds of patient retrying
+      const maxAttempts = 15; // 75 seconds of patient retrying
 
       while (attempts < maxAttempts && isMounted) {
         try {
-          const data = await client.get<PaginatedResponse<Movie>>("/movies?limit=40");
-          const moviesArray = data.movies || (data as any);
+          // 1. Bypass TS strictness with <any> so we can safely check for hidden .data wrappers
+          const rawResponse = await client.get<any>(`/movies?limit=40&_t=${Date.now()}`);
+          
+          // 2. Defensive Parsing: Safely unwrap the Axios envelope at runtime
+          const responseBody = rawResponse?.data ? rawResponse.data : rawResponse;
+          const actualData = responseBody?.data ? responseBody.data : responseBody;
+          const moviesArray = actualData?.movies ? actualData.movies : actualData;
 
-          if (moviesArray?.length > 0) {
+          // 3. Strict Validation: Ensure we actually got array data before stopping the spinner
+          if (Array.isArray(moviesArray) && moviesArray.length > 0) {
             const topTen = moviesArray.slice(0, 10);
             setFeaturedMovie(topTen[Math.floor(Math.random() * topTen.length)]);
             setTrendingMovies(moviesArray.slice(0, 20));
@@ -33,23 +39,26 @@ export default function HomePage() {
               (a: Movie, b: Movie) => (b.vote_average ?? 0) - (a.vote_average ?? 0)
             );
             setTopRatedMovies(sortedMovies.slice(0, 20));
+            
+            // SUCCESS! We have the data. Stop the spinner.
+            if (isMounted) setIsLoading(false);
+            break; 
+          } else {
+            // If the server returned 200 OK but the DB is still booting and returned empty, force a retry!
+            throw new Error("Server awake, but database is not populated yet.");
           }
-
-          // SUCCESS! Stop the loading spinner and break out of the loop
-          if (isMounted) setIsLoading(false);
-          break; 
 
         } catch (err) {
           attempts++;
-          console.warn(`Server waking up... Frontend retrying (${attempts}/${maxAttempts})`);
+          console.warn(`Server/DB waking up... Frontend retrying (${attempts}/${maxAttempts})`);
           
           if (attempts >= maxAttempts) {
             console.error("Failed to load home content after maximum retries.");
-            if (isMounted) setIsLoading(false); // Give up and show empty screen
+            if (isMounted) setIsLoading(false);
             break;
           }
           
-          // Wait 5 seconds before knocking on Render's door again
+          // Wait 5 seconds before trying again
           await new Promise((resolve) => setTimeout(resolve, 5000));
         }
       }
@@ -58,14 +67,14 @@ export default function HomePage() {
     fetchHomeData();
 
     return () => {
-      isMounted = false; // Cleanup function
+      isMounted = false;
     };
   }, []);
 
-  // The "Bulletproof" Centered Loading Overlay
+  // 4. Layout-Friendly CSS: Uses min-height and massive top-padding to escape the Navbar
   if (isLoading) {
     return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0a0a0a] text-center px-4 text-white">
+      <div className="flex flex-col items-center justify-center min-h-[80vh] pt-32 pb-12 text-center px-4 text-white">
         <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-6"></div>
         <h2 className="text-3xl font-bold mb-4">Waking up the AI Engine...</h2>
         <p className="text-gray-400 max-w-lg text-lg leading-relaxed">
