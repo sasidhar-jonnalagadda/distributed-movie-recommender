@@ -73,9 +73,13 @@ export default function HomePage() {
 
   // 4. Layout-Friendly CSS: Uses min-height and massive top-padding to escape the Navbar
   if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[80vh] pt-32 pb-12 text-center px-4 text-white">
-        <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-6"></div>
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen w-full bg-black text-center px-4 text-white">
+      {/* Spinner */}
+      <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-6"></div>
+      
+      {/* Text Content */}
+      <div className="flex flex-col items-center justify-center">
         <h2 className="text-3xl font-bold mb-4">Waking up the AI Engine...</h2>
         <p className="text-gray-400 max-w-lg text-lg leading-relaxed">
           Since we are running on free-tier cloud architecture, the database and backend services take about 50 to 80 seconds to fully boot up. 
@@ -83,8 +87,9 @@ export default function HomePage() {
           <span className="text-blue-400 font-semibold">Hang tight, the system is automatically retrying. No need to refresh!</span>
         </p>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   return (
     <div className="page-content" id="home-page">
