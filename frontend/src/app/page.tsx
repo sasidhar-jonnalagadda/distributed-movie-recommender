@@ -19,7 +19,14 @@ export default function HomePage() {
       let attempts = 0;
       const maxAttempts = 60; // 5 full minutes of patient retrying for deep hibernation
 
-      client.get(`/health?_t=${Date.now()}`).catch(() => {});
+      const WAKEUP_URLS = [
+        "https://api-gateway-service-bc54.onrender.com/api/health",
+        "https://movie-ml-service.onrender.com"
+      ];
+
+      WAKEUP_URLS.forEach(url => {
+        fetch(`${url}?_t=${Date.now()}`, { mode: 'no-cors', cache: 'no-store' }).catch(() => {});
+      });
 
       while (attempts < maxAttempts && isMounted) {
         try {
