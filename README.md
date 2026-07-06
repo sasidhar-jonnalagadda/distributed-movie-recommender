@@ -1,12 +1,12 @@
-# Distributed Movie Recommender
+# Movie Recommendation Engine
 
-A high-performance, enterprise-grade distributed microservice platform for delivering ultra-low-latency movie recommendations. Built from the ground up to demonstrate modern architectural patterns including Incremental Static Regeneration (ISR), Circuit Breaking, and Zero-Downtime Machine Learning model hot-reloading.
+A full-stack movie discovery web application featuring an interactive user dashboard linked with a customized Python processing backend script optimized for efficient recommendation retrieval.
 
 ---
 
 ## 🏛️ Architecture Overview
 
-The platform operates on a resilient, 3-tier microservice architecture orchestrated seamlessly via Docker Compose.
+The platform operates on a clean, synchronous 3-tier architecture designed to connect front-end routing with database caching and data analytics logic.
 
 ```text
                      [ External TMDB API ]
@@ -15,7 +15,7 @@ The platform operates on a resilient, 3-tier microservice architecture orchestra
 [ Client Browser ] <--> [ Next.js Frontend ] (Port 3000)
                                |
                                v
-                     [ Node API Gateway ] (Port 4000)
+                      [ Node API Gateway ] (Port 4000)
                                |
             +------------------+------------------+
             |                                     |
@@ -23,103 +23,93 @@ The platform operates on a resilient, 3-tier microservice architecture orchestra
 [ Python ML Service ] (Port 8000)        [ PostgreSQL DB ] (Port 5432)
 ```
 
-1. **Frontend (Next.js):** Handles the UI and client-side state. Utilizes Server Components and ISR for lightning-fast initial page loads, and React Query for dynamic client-side interactions.
-2. **API Gateway (Node.js/Express):** Acts as the centralized orchestrator. It securely manages JWT authentication, routes traffic, rate limits requests, and implements Circuit Breaker patterns to protect downstream services.
-3. **ML Service (Python/FastAPI):** A high-throughput, memory-optimized recommendation engine using NumPy matrix operations to compute real-time cosine similarity scores.
-4. **Database (PostgreSQL):** A persistent storage layer housing user profiles, authentication records, and individual watchlists.
+- **Frontend (Next.js):** Handles the user interface, browsing dashboard, dynamic watchlists, and client-side data state tracking using React components.
+- **API Backend (Node.js/Express):** Acts as the central app controller. It securely manages user routes, handles JWT-based cookie authorization, and communicates with the Python processing layer.
+- **Analytics Backend (Python/FastAPI):** A high-performance computation script using NumPy's quickselect structures to instantly handle mathematical array comparisons.
+- **Database (PostgreSQL):** A reliable, persistent relational database holding user credentials, watchlist associations, and an internal metadata cache.
 
 ---
 
 ## 🛠️ Tech Stack
 
-**Frontend**
-* Framework: Next.js 14 (App Router)
-* State Management: TanStack React Query
-* Styling: Vanilla CSS (Tokens & Utilities)
-* Type Safety: TypeScript
+### Frontend
+- **Framework:** Next.js (App Router)
+- **Client-Side Data:** TanStack React Query
+- **Styling:** Vanilla CSS (Tokens & Custom Utilities)
+- **Language:** TypeScript
 
-**Backend (API Gateway)**
-* Framework: Node.js with Express
-* Database ORM: Prisma / Sequelize
-* Security: Helmet, Express Rate Limit, JWT
-* Architecture: Axios Interceptors & Circuit Breakers
+### Backend & APIs
+- **Environment:** Node.js with Express.js
+- **Database Mapper:** Prisma ORM
+- **Security & Auth:** Helmet, Express Rate Limit, Jsonwebtoken (JWT)
+- **Data Gateway:** Axios Client Requests
 
-**Machine Learning Service**
-* Framework: FastAPI (Python)
-* Data Processing: Pandas & NumPy
-* Validation: Pydantic Strict Typing
+### Data Processing Layer
+- **Framework:** FastAPI (Python)
+- **Manipulation Engine:** NumPy & Pandas
 
-**DevOps & Infrastructure**
-* Containerization: Docker & Docker Compose
-* Deployment: Multi-stage, non-root hardened images
+### Databases & Tools
+- **Database:** PostgreSQL
+- **API Verification:** Postman
+- **Version Control:** Git
 
 ---
 
 ## ✨ Key Features
 
-* **ISR Caching:** The frontend heavily leverages Next.js Incremental Static Regeneration to serve pre-rendered pages instantly while validating data in the background.
-* **Circuit Breaker Pattern:** The API Gateway intelligently cuts off traffic to the ML service if it detects latency spikes or failures, returning graceful fallbacks to the frontend.
-* **ML Model Hot-Reloading:** The ML service utilizes thread-safe locking and atomic swapping to hot-reload similarity matrices in-memory via an API endpoint, achieving absolute zero-downtime model updates.
-* **Aggressive Rate Limiting:** Critical endpoints (like authentication and token refreshing) are protected against brute-force attacks via strict rate limiters.
-* **A11y & SEO:** Built strictly adhering to semantic HTML, aria-labels, and modern accessibility standards.
+- **Linear Selection Logic (O(N)):** Optimizes standard processing matrix queries using an element partitioning system to retrieve recommendations swiftly without using blocking full-array sort algorithms.
+- **Local Metadata Caching:** Implements a relational caching structure in PostgreSQL to look up previously requested metadata locally, drastically reducing repetitive network trips to external services.
+- **Axios Interceptor Synced Queues:** Uses an authentication layer interceptor pipeline to refresh expired tokens seamlessly without triggering race conditions or duplicate network overhead.
+- **JWT Cookie Protection:** Secures application authorization paths by handling token states exclusively through server-verified HTTP-only cookies.
 
 ---
 
-## 🚀 Prerequisites & Setup
+## 🚀 Local Installation & Setup
 
-### 1. Requirements
-Ensure you have the following installed:
-* [Docker](https://docs.docker.com/get-docker/)
-* [Docker Compose](https://docs.docker.com/compose/install/)
+### 1. Environment Configuration
 
-### 2. Environment Configuration
-The application relies on specific environment variables to function correctly. You must create an `.env` file at the root of the repository.
+Create a `.env` file at the root of your project directory and add the following keys:
 
-1. Copy the provided template:
-   ```bash
-   cp .env.example .env
-   ```
-2. Open `.env` and fill in your secrets. At a minimum, ensure the following are set:
-   ```env
-   # Database Credentials
-   DB_USER=movieuser
-   DB_PASSWORD=your_secure_password_here
-   DB_NAME=moviedb
+```env
+# Database Configuration
+DATABASE_URL="postgresql://movieuser:your_password@localhost:5432/moviedb"
 
-   # JWT Security (Generate with: openssl rand -base64 32)
-   JWT_SECRET=your_jwt_secret_here
+# Authentication Controls
+JWT_SECRET="your_custom_jwt_secret_token_string"
 
-   # The Movie Database API (Required for metadata & posters)
-   # Get your API key from: https://www.themoviedb.org/settings/api
-   TMDB_API_KEY=your_tmdb_api_key_here
-   ```
-
-### 3. Running the App
-
-Once your `.env` file is configured, start the entire distributed cluster in detached mode using Docker Compose:
-
-```bash
-docker compose up --build -d
+# External Movie Database Details
+TMDB_API_KEY="your_tmdb_api_key"
 ```
 
-### 4. Accessing the Services
-Once all containers have started and passed their internal health checks, the services will be available at:
-* **Frontend UI:** [http://localhost:3000](http://localhost:3000)
-* **API Gateway Health:** [http://localhost:4000/api/health](http://localhost:4000/api/health)
-* **ML Service Docs:** [http://localhost:8000/docs](http://localhost:8000/docs)
+### 2. Starting the Backends
 
-**Demo Credentials:**
-| Role | Email | Password |
-| :--- | :--- | :--- |
-| **Standard User** | `testuser@gmail.com` | `password` |
+**For the Python Analytics Service:**
 
-> [!NOTE]
-> These credentials are created during the docker compose initialization via the seed script. If you cannot log in, ensure you have run the database migration/seed command.
+```bash
+cd ml-service
+pip install -r requirements.txt
+uvicorn app.main:app --port 8000 --reload
+```
 
----
+**For the Express.js Server:**
 
-## 🤝 Contributing
-Please read through our [CONTRIBUTING.md](./CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us. Note that this project strictly enforces `.editorconfig` spacing conventions.
+```bash
+cd api-gateway
+npm install
+npx prisma db push
+npm run start
+```
 
-## 📄 License
-This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+### 3. Starting the Frontend UI
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Once running, the application will be active locally at:
+
+- **User Application Dashboard:** http://localhost:3000
+- **API Ingress Controller:** http://localhost:4000
+- **Python Processing Documentation:** http://localhost:8000/docs
